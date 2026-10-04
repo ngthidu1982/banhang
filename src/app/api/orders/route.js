@@ -54,7 +54,7 @@ export async function POST(request) {
 
     const ma_hoa_don = `HD${Date.now()}`;
 
-    // 2. Thêm Hóa đơn chính (có lưu số tiền giảm giá)
+    // 2. Thêm Hóa đơn chính (có lưu số tiền giảm giá đơn)
     const [orderResult] = await db.query(
       'INSERT INTO hoa_don (ma_hoa_don, tong_tien, giam_gia) VALUES (?, ?, ?)',
       [ma_hoa_don, Number(tong_tien), Number(giam_gia) || 0]
@@ -63,12 +63,14 @@ export async function POST(request) {
 
     // 3. Thêm Chi tiết hóa đơn + Trừ tồn kho
     for (const item of items) {
-      const thanhTien = Number(item.don_gia) * Number(item.so_luong);
+      const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+      const discountAmount = Number(item.giam_gia_item) || 0;
+      const thanhTien = lineTotal - discountAmount;
 
       await db.query(
         `INSERT INTO hoa_don_chi_tiet 
-        (hoa_don_id, ma_san_pham, ten_san_pham, size, so_luong, don_gia, thanh_tien) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        (hoa_don_id, ma_san_pham, ten_san_pham, size, so_luong, don_gia, giam_gia, thanh_tien) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           hoaDonId,
           item.ma_san_pham,
@@ -76,6 +78,7 @@ export async function POST(request) {
           item.size,
           Number(item.so_luong),
           Number(item.don_gia),
+          discountAmount,
           thanhTien,
         ]
       );
@@ -108,7 +111,7 @@ export async function DELETE(request) {
       [orderId]
     );
 
-    // 2. Hoàn trả số lượng tồn kho cho từng sản phẩm theo mã và size
+    // 2. Hoàn trả số lượng tồn kho cho từng sản phẩm
     for (const item of items) {
       await db.query(
         'UPDATE sp_variant SET ton_kho = ton_kho + ? WHERE ma_san_pham = ? AND size = ?',
