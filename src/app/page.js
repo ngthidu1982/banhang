@@ -430,7 +430,17 @@ export default function Home() {
               {stats.stockBySize && Object.keys(stats.stockBySize).length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {Object.entries(stats.stockBySize)
-                    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+                    .sort(([a], [b]) => {
+                      const numA = Number(a);
+                      const numB = Number(b);
+                      const isNumA = Number.isInteger(numA) && a.trim() !== '';
+                      const isNumB = Number.isInteger(numB) && b.trim() !== '';
+
+                      if (isNumA && isNumB) {
+                        return numA - numB;
+                      }
+                      return a.localeCompare(b, undefined, { numeric: true });
+                    })
                     .map(([size, count]) => (
                       <div key={size} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 text-center">
                         <span className="block text-[11px] text-zinc-500 uppercase font-bold">Size</span>
@@ -766,7 +776,18 @@ export default function Home() {
                 >
                   <option value="">-- Chọn Size --</option>
                   {selectedProdObj?.variants
-                    ?.sort((a, b) => String(a.size).localeCompare(String(b.size), undefined, { numeric: true }))
+                    ?.slice()
+                    .sort((a, b) => {
+                      const numA = Number(a.size);
+                      const numB = Number(b.size);
+                      const isNumA = Number.isInteger(numA) && String(a.size).trim() !== '';
+                      const isNumB = Number.isInteger(numB) && String(b.size).trim() !== '';
+
+                      if (isNumA && isNumB) {
+                        return numA - numB;
+                      }
+                      return String(a.size).localeCompare(String(b.size), undefined, { numeric: true });
+                    })
                     .map((v) => (
                       <option key={v.id || v.size} value={v.size}>
                         Size {v.size} (Tồn: {v.ton_kho})
