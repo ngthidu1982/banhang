@@ -397,15 +397,15 @@ export default function Home() {
           <div>
             <h1 className="text-2xl font-bold mb-6 text-zinc-900">Quản Lý Sản Phẩm & Tồn Kho</h1>
 
-            {/* DASHBOARD TỔNG QUAN (Trắng - Đen Tối Giản) */}
+            {/* DASHBOARD TỔNG QUAN */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Số Sản Phẩm</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalProducts || 0} mã</p>
+                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalProducts || 0} Mã</p>
               </div>
               <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Tồn Kho</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalStock || 0} cái</p>
+                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalStock || 0} Cái</p>
               </div>
               <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Giá Trị Tiền Hàng (Giá Gốc)</p>
@@ -575,7 +575,7 @@ export default function Home() {
                     <tr>
                       <th className="py-3.5 px-4">Mã SP</th>
                       <th className="py-3.5 px-4">Tên SP</th>
-                      <th className="py-3.5 px-4">Giá gốc</th>
+                      <th className="py-3.5 px-4 text-center">Tổng tồn kho</th>
                       <th className="py-3.5 px-4 text-center">Chiết khấu</th>
                       <th className="py-3.5 px-4">Giá niêm yết</th>
                       <th className="py-3.5 px-4">Biến thể (Size - Tồn)</th>
@@ -589,18 +589,30 @@ export default function Home() {
                         const giaGoc = Number(p.gia) || 0;
                         const tienLoi = (giaGoc * chietKhau) / 100;
 
+                        // Tính tổng tồn kho từ tất cả các size
+                        const totalVariantStock = p.variants?.reduce(
+                          (sum, v) => sum + (Number(v.ton_kho) || 0),
+                          0
+                        ) || 0;
+
                         return (
                           <tr key={p.id} className="hover:bg-zinc-50/80 transition-colors">
                             <td className="py-4 px-4 font-bold text-zinc-900">{p.ma_san_pham}</td>
                             <td className="py-4 px-4 font-medium">{p.ten_san_pham}</td>
-                            <td className="py-4 px-4 font-semibold text-zinc-800">{giaGoc.toLocaleString('vi-VN')} đ</td>
+                            
+                            {/* Tổng tồn kho thay cho Giá gốc */}
+                            <td className="py-4 px-4 text-center font-bold text-zinc-900">
+                              {totalVariantStock} cái
+                            </td>
+
+                            {/* Badge Chiết khấu có viền xanh lá nhẹ */}
                             <td className="py-4 px-4 text-center">
                               {chietKhau > 0 ? (
                                 <div className="inline-flex flex-col items-center">
-                                  <span className="bg-zinc-100 text-zinc-800 font-semibold text-xs px-2 py-0.5 rounded border border-zinc-200">
+                                  <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
                                     +{chietKhau}%
                                   </span>
-                                  <span className="text-[11px] text-zinc-500 mt-0.5">
+                                  <span className="text-[11px] text-emerald-600 font-medium mt-0.5">
                                     (+{tienLoi.toLocaleString('vi-VN')} đ)
                                   </span>
                                 </div>
@@ -608,39 +620,37 @@ export default function Home() {
                                 <span className="text-zinc-400 text-xs">0%</span>
                               )}
                             </td>
+
                             <td className="py-4 px-4 font-bold text-zinc-900">{giaGoc.toLocaleString('vi-VN')} đ</td>
+                            
                             <td className="py-4 px-4">
-                              {p.variants && p.variants.length > 0 ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                  {[...p.variants]
-                                    .sort((a, b) =>
-                                      String(a.size).localeCompare(String(b.size), undefined, { numeric: true })
-                                    )
-                                    .map((v) => (
-                                      <span
-                                        key={v.id || `${v.size}-${v.ton_kho}`}
-                                        className="inline-flex items-center gap-1 bg-zinc-100 border border-zinc-200 text-zinc-800 text-xs font-medium px-2 py-1 rounded"
-                                      >
-                                        <span>Size <strong className="text-zinc-900">{v.size}</strong>:</span>
-                                        <span className="text-zinc-900 font-bold">{v.ton_kho} cái</span>
-                                      </span>
-                                    ))}
-                                </div>
-                              ) : (
-                                <span className="text-zinc-400 text-sm">Chưa có biến thể</span>
-                              )}
+                              <div className="flex flex-wrap gap-1.5">
+                                {p.variants && p.variants.length > 0 ? (
+                                  p.variants.map((v, i) => (
+                                    <span
+                                      key={i}
+                                      className="inline-block bg-zinc-100 text-zinc-700 text-xs px-2 py-1 rounded border border-zinc-200"
+                                    >
+                                      <b>Size {v.size}</b>: {v.ton_kho} cái
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="text-zinc-400 text-xs">Chưa có biến thể</span>
+                                )}
+                              </div>
                             </td>
+
                             <td className="py-4 px-4 text-center">
-                              <div className="flex justify-center items-center gap-2">
+                              <div className="flex items-center justify-center gap-2">
                                 <button
                                   onClick={() => handleEdit(p)}
-                                  className="px-3 py-1.5 text-xs font-semibold border border-zinc-300 text-zinc-800 rounded-md hover:bg-zinc-100 transition-all"
+                                  className="bg-zinc-100 text-zinc-800 border border-zinc-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-zinc-200 transition-all"
                                 >
                                   Sửa
                                 </button>
                                 <button
                                   onClick={() => handleDelete(p.id)}
-                                  className="px-3 py-1.5 text-xs font-semibold text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-all"
+                                  className="bg-red-50 text-red-600 border border-red-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-all"
                                 >
                                   Xóa
                                 </button>
@@ -651,8 +661,8 @@ export default function Home() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan="7" className="text-center py-8 text-zinc-500">
-                          Chưa có sản phẩm nào
+                        <td colSpan="7" className="py-8 text-center text-zinc-400 text-sm">
+                          Không tìm thấy sản phẩm nào.
                         </td>
                       </tr>
                     )}
@@ -1036,7 +1046,7 @@ export default function Home() {
           <div style={{ borderTop: '1px solid #000', margin: '6px 0' }}></div>
 
           <div style={{ textAlign: 'center', marginTop: '10px' }}>
-            <p style={{ margin: '2px 0', italic: 'true' }}>Cảm ơn quý khách & Hẹn gặp lại!</p>
+            <p style={{ margin: '2px 0', fontStyle: 'italic' }}>Cảm ơn quý khách & Hẹn gặp lại!</p>
           </div>
         </div>
       )}
