@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 
+const ITEMS_PER_PAGE = 10;
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   // Navigation State
@@ -9,6 +11,7 @@ export default function Home() {
 
   // Products State
   const [products, setProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // State quản lý trang hiện tại
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalStock: 0,
@@ -79,6 +82,17 @@ export default function Home() {
     fetchProducts();
     fetchOrdersHistory();
   }, []);
+
+  // Tính toán dữ liệu phân trang 10 sản phẩm / trang
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentProducts = products.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   // Lọc sản phẩm ở Tab Thanh Toán
   const filteredCheckoutProducts = useMemo(() => {
@@ -223,7 +237,6 @@ export default function Home() {
         fetchProducts(searchQuery);
         fetchOrdersHistory();
 
-        // Tự động mở hộp thoại in sau khi thanh toán thành công
         handlePrintOrder(createdOrder);
       } else {
         alert('Lỗi: ' + data.error);
@@ -234,31 +247,32 @@ export default function Home() {
   };
 
   const handleDeleteOrder = async (orderId, maHoaDon) => {
-  if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${maHoaDon}? Tồn kho của các sản phẩm trong đơn sẽ được HOÀN TRẢ LẠI!`)) {
-    try {
-      const res = await fetch(`/api/orders?id=${orderId}`, {
-        method: 'DELETE',
-      });
+    if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${maHoaDon}? Tồn kho của các sản phẩm trong đơn sẽ được HOÀN TRẢ LẠI!`)) {
+      try {
+        const res = await fetch(`/api/orders?id=${orderId}`, {
+          method: 'DELETE',
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (res.ok) {
-        alert('Đã xóa đơn hàng và hoàn lại số lượng sản phẩm vào kho!');
-        fetchOrdersHistory(); // Làm mới lịch sử đơn hàng
-        fetchProducts(searchQuery); // Làm mới số lượng tồn kho sản phẩm
-      } else {
-        alert('Lỗi: ' + data.error);
+        if (res.ok) {
+          alert('Đã xóa đơn hàng và hoàn lại số lượng sản phẩm vào kho!');
+          fetchOrdersHistory();
+          fetchProducts(searchQuery);
+        } else {
+          alert('Lỗi: ' + data.error);
+        }
+      } catch (error) {
+        alert('Có lỗi xảy ra khi xóa đơn hàng!');
       }
-    } catch (error) {
-      alert('Có lỗi xảy ra khi xóa đơn hàng!');
     }
-  }
-};
+  };
 
   // --- PRODUCT FORM HANDLERS ---
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
+    setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
     fetchProducts(value);
   };
 
@@ -317,12 +331,11 @@ export default function Home() {
   const selectedProdObj = products.find((p) => p.ma_san_pham === selectedProduct);
 
   if (!mounted) {
-    return null; // Hoặc trả về một khung loading nhẹ <div className="p-8">Đang tải...</div>
+    return null;
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-900">
-      {/* CSS DÙNG RIÊNG CHO MÁY IN KHỔ K80/RICHTA */}
       <style jsx global>{`
         @media print {
           body * {
@@ -542,6 +555,7 @@ export default function Home() {
                 <button
                   onClick={() => {
                     setSearchQuery('');
+                    setCurrentPage(1);
                     fetchProducts('');
                   }}
                   className="bg-gray-300 text-gray-800 px-3 py-2 rounded text-sm whitespace-nowrap"
@@ -567,8 +581,8 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {Array.isArray(products) && products.length > 0 ? (
-                    products.map((p) => {
+                  {Array.isArray(currentProducts) && currentProducts.length > 0 ? (
+                    currentProducts.map((p) => {
                       const chietKhau = Number(p.chiet_khau) || 0;
                       const giaGoc = Number(p.gia) || 0;
                       const tienLoi = (giaGoc * chietKhau) / 100;
@@ -640,6 +654,47 @@ export default function Home() {
                   )}
                 </tbody>
               </table>
+
+              {/* THANH ĐIỀU HƯỚNG PHÂN TRANG */}
+              {products.length > 0 && (
+                <div className="flex items-center justify-between p-4 border-t border-gray-200 text-sm text-gray-600 bg-gray-50">
+                  <div>
+                    Hiển thị <b>{startIndex + 1}</b> - <b>{Math.min(startIndex + ITEMS_PER_PAGE, products.length)}</b> trên tổng số <b>{products.length}</b> sản phẩm
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-3 py-1.5 rounded border font-medium transition ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white border-blue-600 font-bold'
+                            : 'bg-white border-gray-300 hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      className="px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      Sau
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -880,11 +935,11 @@ export default function Home() {
                                 🖨️ In Hóa Đơn
                               </button>
                               <button
-    onClick={() => handleDeleteOrder(order.id, order.ma_hoa_don)}
-    className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-red-700 transition"
-  >
-    🗑️ Xóa đơn
-  </button>
+                                onClick={() => handleDeleteOrder(order.id, order.ma_hoa_don)}
+                                className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-red-700 transition"
+                              >
+                                🗑️ Xóa đơn
+                              </button>
                             </div>
                           </div>
                           <div className="text-sm text-gray-700">
@@ -917,7 +972,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* --- PHẦN KHUNG IN HÓA ĐƠN RIÊNG (CHỈ HIỂN THỊ KHI IN BẰNG MÁY IN RICHTA) --- */}
+      {/* KHUNG IN HÓA ĐƠN */}
       {orderToPrint && (
         <div id="print-receipt-area" className="hidden print:block">
           <div style={{ textAlign: 'center', marginBottom: '8px' }}>
