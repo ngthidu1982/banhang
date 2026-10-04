@@ -241,7 +241,6 @@ export default function Home() {
       const lineTotal = Number(item.don_gia) * Number(item.so_luong);
       const discountAmount = calculateItemDiscountAmount(item);
       
-      // Tính phần trăm giảm thực tế để in ra hóa đơn
       const percentVal = item.itemDiscountType === 'percent' 
         ? Number(item.itemDiscountValue) || 0 
         : lineTotal > 0 ? (discountAmount / lineTotal) * 100 : 0;
@@ -372,6 +371,31 @@ export default function Home() {
   if (!mounted) {
     return null;
   }
+
+  // TÍNH TOÁN CÁC TIÊU ĐỀ TỔNG CHO PHẦN IN HÓA ĐƠN
+  const printSummary = orderToPrint ? (() => {
+    let tongTienHang = 0;
+    let tongGiamMon = 0;
+
+    orderToPrint.items?.forEach((item) => {
+      const donGiaGoc = Number(item.don_gia) || 0;
+      const soLuong = Number(item.so_luong) || 0;
+      const lineGiamGia = Number(item.giam_gia_item ?? item.giam_gia ?? 0);
+
+      tongTienHang += donGiaGoc * soLuong;
+      tongGiamMon += lineGiamGia;
+    });
+
+    const giamGiaThem = Number(orderToPrint.giam_gia) || 0;
+    const tongCong = Number(orderToPrint.tong_tien) || 0;
+
+    return {
+      tongTienHang,
+      tongGiamMon,
+      giamGiaThem,
+      tongCong,
+    };
+  })() : null;
 
   return (
     <div className="flex min-h-screen bg-zinc-50 text-zinc-900 font-sans">
@@ -893,7 +917,6 @@ export default function Home() {
                             <td className="p-3">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
                             <td className="p-3 font-bold">{item.so_luong}</td>
                             
-                            {/* TÙY CHỌN GIẢM GIÁ THEO % HOẶC VNĐ */}
                             <td className="p-3">
                               <div className="flex items-center gap-1.5">
                                 <select
@@ -1064,7 +1087,6 @@ export default function Home() {
                             </div>
                           </div>
 
-                          {/* DÁNH SÁCH SẢN PHẨM TRONG ĐƠN HÀNG LỊCH SỬ */}
                           <div className="text-xs text-zinc-700">
                             <p className="font-semibold text-zinc-500 mb-1 uppercase tracking-wider text-[10px]">Chi tiết sản phẩm:</p>
                             <ul className="list-disc list-inside space-y-1">
@@ -1106,8 +1128,8 @@ export default function Home() {
         )}
       </main>
 
-      {/* KHUNG IN HÓA ĐƠN IN 2 DÒNG CHO MỖI SẢN PHẨM */}
-      {orderToPrint && (
+      {/* KHUNG IN HÓA ĐƠN ĐÃ CẬP NHẬT PHẦN CHÂN HÓA ĐƠN */}
+      {orderToPrint && printSummary && (
         <div id="print-receipt-area" className="hidden print:block">
           <div style={{ textAlign: 'center', marginBottom: '8px' }}>
             <h2 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>CỬA HÀNG VIỆT TIẾN</h2>
@@ -1144,12 +1166,10 @@ export default function Home() {
                 return (
                   <tr key={idx} style={{ borderBottom: '1px dashed #ccc' }}>
                     <td style={{ padding: '4px 0' }}>
-                      {/* DÒNG 1: TÊN SP - SIZE - SL */}
                       <div style={{ fontWeight: 'bold' }}>
                         {item.ten_san_pham} (Size {item.size}) x {soLuong}
                       </div>
 
-                      {/* DÒNG 2: GIÁ GỐC - GIẢM GIÁ (% & VNĐ) - THÀNH TIỀN */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', marginTop: '2px' }}>
                         <span>Giá: {donGiaGoc.toLocaleString('vi-VN')}</span>
                         {giamGiaTien > 0 ? (
@@ -1168,15 +1188,31 @@ export default function Home() {
 
           <div style={{ borderTop: '1px solid #000', margin: '6px 0' }}></div>
 
-          <div style={{ textAlign: 'right' }}>
-            {Number(orderToPrint.giam_gia) > 0 && (
-              <p style={{ margin: '2px 0' }}>
-                Giảm giá đơn: -{Number(orderToPrint.giam_gia).toLocaleString('vi-VN')} đ
-              </p>
+          {/* CHÂN HÓA ĐƠN ĐÃ ĐƯỢC CHỈNH SỬA */}
+          <div style={{ fontSize: '10px', lineHeight: '1.5' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
+              <span>Tổng tiền hàng:</span>
+              <span>{printSummary.tongTienHang.toLocaleString('vi-VN')} đ</span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
+              <span>Tổng tiền giảm:</span>
+              <span>-{printSummary.tongGiamMon.toLocaleString('vi-VN')} đ</span>
+            </div>
+
+            {printSummary.giamGiaThem > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
+                <span>Tiền giảm thêm:</span>
+                <span>-{printSummary.giamGiaThem.toLocaleString('vi-VN')} đ</span>
+              </div>
             )}
-            <p style={{ fontSize: '13px', fontWeight: 'bold', margin: '4px 0' }}>
-              TỔNG CỘNG: {Number(orderToPrint.tong_tien).toLocaleString('vi-VN')} đ
-            </p>
+
+            <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }}></div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold', margin: '4px 0' }}>
+              <span>TỔNG CỘNG:</span>
+              <span>{printSummary.tongCong.toLocaleString('vi-VN')} đ</span>
+            </div>
           </div>
 
           <div style={{ borderTop: '1px solid #000', margin: '6px 0' }}></div>
