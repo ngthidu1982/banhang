@@ -10,12 +10,12 @@ const searchName = searchParams.get('searchName') || '';
     let params = [];
     
     if (searchCode) {
-  query += ' AND ma_san_pham LIKE ?';
+  productsQuery += ' AND ma_san_pham LIKE ?';
   params.push(`%${searchCode}%`);
 }
 
 if (searchName) {
-  query += ' AND ten_san_pham LIKE ?';
+  productsQuery += ' AND ten_san_pham LIKE ?';
   params.push(`%${searchName}%`);
 }
 
