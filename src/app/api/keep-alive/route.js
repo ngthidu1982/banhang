@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db'; // Đảm bảo đúng đường dẫn tới file kết nối MySQL của bạn
+import pool from '@/lib/db'; 
 
 export async function GET() {
   try {
