@@ -5,28 +5,32 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const searchCode = searchParams.get('searchCode') || '';
-const searchName = searchParams.get('searchName') || '';
-    let productsQuery = 'SELECT * FROM sanpham';
+    const searchName = searchParams.get('searchName') || '';
+
+    // Khai báo tên biến là productsQuery
+    let productsQuery = 'SELECT * FROM sanpham WHERE 1=1';
     let params = [];
     
+    // Sửa 'query' thành 'productsQuery'
     if (searchCode) {
-  productsQuery += ' AND ma_san_pham LIKE ?';
-  params.push(`%${searchCode}%`);
-}
+      productsQuery += ' AND ma_san_pham LIKE ?';
+      params.push(`%${searchCode}%`);
+    }
 
-if (searchName) {
-  productsQuery += ' AND ten_san_pham LIKE ?';
-  params.push(`%${searchName}%`);
-}
+    if (searchName) {
+      productsQuery += ' AND ten_san_pham LIKE ?';
+      params.push(`%${searchName}%`);
+    }
 
+    // Thực thi câu lệnh
     const [products] = await db.query(productsQuery, params);
     const [variants] = await db.query('SELECT * FROM sp_variant');
 
     const totalProducts = products.length;
 
     let totalStock = 0;
-    let totalValue = 0; // Tổng tiền hàng tính theo GIÁ GỐC
-    let totalDiscountProfit = 0; // Tổng tiền chiết khấu (tiền lời)
+    let totalValue = 0;
+    let totalDiscountProfit = 0;
     const stockBySize = {};
 
     const result = products.map((prod) => {
@@ -34,9 +38,7 @@ if (searchName) {
       const giaGoc = Number(prod.gia) || 0;
       const chietKhau = Number(prod.chiet_khau) || 0;
 
-      // Tiền lời (chiết khấu) trên 1 sản phẩm
       const tienLoiPerUnit = (giaGoc * chietKhau) / 100;
-      // Giá bán cho khách vẫn là Giá gốc
       const giaBanThucTe = giaGoc; 
 
       prodVariants.forEach((v) => {
@@ -55,7 +57,7 @@ if (searchName) {
         ...prod,
         chiet_khau: chietKhau,
         tien_loi: tienLoiPerUnit,
-        gia_ban: giaBanThucTe, // Khách mua đúng giá gốc
+        gia_ban: giaBanThucTe,
         variants: prodVariants,
       };
     });
@@ -65,9 +67,9 @@ if (searchName) {
       stats: {
         totalProducts,
         totalStock,
-        totalValue, // Tổng tiền hàng nguyên giá gốc
-        totalDiscountProfit, // Tổng tiền chiết khấu/lợi nhuận
-        totalValueAfterDiscount: totalValue - totalDiscountProfit, // Tổng tiền hàng sau chiết khấu
+        totalValue,
+        totalDiscountProfit,
+        totalValueAfterDiscount: totalValue - totalDiscountProfit,
         stockBySize,
       },
     });
