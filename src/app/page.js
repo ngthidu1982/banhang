@@ -49,25 +49,25 @@ export default function Home() {
   const [orderToPrint, setOrderToPrint] = useState(null);
 
   const fetchProducts = async (code = searchCode, name = searchName) => {
-  try {
-    const res = await fetch(
-      `/api/products?searchCode=${encodeURIComponent(code)}&searchName=${encodeURIComponent(name)}`
-    );
-    const data = await res.json();
+    try {
+      const res = await fetch(
+        `/api/products?searchCode=${encodeURIComponent(code)}&searchName=${encodeURIComponent(name)}`
+      );
+      const data = await res.json();
 
-    if (data && data.products) {
-      setProducts(data.products);
-      setStats(data.stats || {});
-    } else if (Array.isArray(data)) {
-      setProducts(data);
-    } else {
+      if (data && data.products) {
+        setProducts(data.products);
+        setStats(data.stats || {});
+      } else if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('Lỗi fetch:', error);
       setProducts([]);
     }
-  } catch (error) {
-    console.error('Lỗi fetch:', error);
-    setProducts([]);
-  }
-};
+  };
 
   const fetchOrdersHistory = async () => {
     try {
@@ -195,6 +195,8 @@ export default function Home() {
           size: selectedSize,
           don_gia: donGiaThucTe,
           so_luong: Number(buyQuantity),
+          itemDiscountType: 'percent', // 'percent' | 'vnd'
+          itemDiscountValue: 0,
         },
       ]);
     }
@@ -206,18 +208,51 @@ export default function Home() {
     setCart(cart.filter((_, i) => i !== index));
   };
 
-  const subTotal = cart.reduce((sum, item) => sum + Number(item.don_gia) * Number(item.so_luong), 0);
+  const handleItemDiscountChange = (index, field, value) => {
+    const updatedCart = [...cart];
+    updatedCart[index][field] = value;
+    setCart(updatedCart);
+  };
+
+  // Hàm tính số tiền giảm giá cho 1 dòng sản phẩm
+  const calculateItemDiscountAmount = (item) => {
+    const totalLine = Number(item.don_gia) * Number(item.so_luong);
+    const val = Number(item.itemDiscountValue) || 0;
+    if (item.itemDiscountType === 'percent') {
+      return (totalLine * Math.min(100, Math.max(0, val))) / 100;
+    } else {
+      return Math.min(totalLine, Math.max(0, val));
+    }
+  };
+
+  // Tính tổng tiền giỏ hàng sau khi đã trừ giảm giá từng món
+  const subTotal = cart.reduce((sum, item) => {
+    const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+    const discount = calculateItemDiscountAmount(item);
+    return sum + (lineTotal - discount);
+  }, 0);
+
   const finalTotal = Math.max(0, subTotal - Number(orderDiscount || 0));
 
   const handleCheckout = async () => {
     if (cart.length === 0) return alert('Giỏ hàng trống!');
+
+    const itemsForPayload = cart.map((item) => {
+      const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+      const discountAmount = calculateItemDiscountAmount(item);
+      return {
+        ...item,
+        giam_gia_item: discountAmount,
+        thanh_tien: lineTotal - discountAmount,
+      };
+    });
 
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart,
+          items: itemsForPayload,
           tong_tien: finalTotal,
           giam_gia: Number(orderDiscount) || 0,
         }),
@@ -231,7 +266,7 @@ export default function Home() {
         const createdOrder = {
           ma_hoa_don: data.ma_hoa_don,
           ngay_tao: new Date().toISOString(),
-          items: cart.map((item) => ({ ...item, thanh_tien: item.don_gia * item.so_luong })),
+          items: itemsForPayload,
           giam_gia: Number(orderDiscount) || 0,
           tong_tien: finalTotal,
         };
@@ -273,13 +308,6 @@ export default function Home() {
   };
 
   // PRODUCT FORM HANDLERS
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    setCurrentPage(1);
-    fetchProducts(value);
-  };
-
   const handleVariantChange = (index, field, value) => {
     const updatedVariants = [...formData.variants];
     updatedVariants[index][field] = value;
@@ -365,7 +393,7 @@ export default function Home() {
         }
       `}</style>
 
-      {/* SIDEBAR NAVIGATION (Đen / Xám sẫm) */}
+      {/* SIDEBAR NAVIGATION */}
       <aside className="w-64 bg-zinc-900 text-white flex flex-col p-4 shadow-lg shrink-0 border-r border-zinc-800 no-print">
         <div className="text-base font-bold uppercase tracking-wider mb-8 px-2 border-b border-zinc-800 pb-4 text-zinc-100">
           BÁN HÀNG & KHO
@@ -561,49 +589,44 @@ export default function Home() {
               <div className="p-4 border-b border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-3">
                 <h2 className="text-lg font-bold text-zinc-900">Danh Sách Sản Phẩm</h2>
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-      {/* Ô 1: Tìm theo Mã */}
-      <input
-        type="text"
-        placeholder="Tìm theo Mã SP..."
-        value={searchCode}
-        onChange={(e) => {
-          const val = e.target.value;
-          setSearchCode(val);
-          setCurrentPage(1);
-          fetchProducts(val, searchName);
-        }}
-        className="w-full sm:w-48 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-      />
-
-      {/* Ô 2: Tìm theo Tên */}
-      <input
-        type="text"
-        placeholder="Tìm theo Tên SP..."
-        value={searchName}
-        onChange={(e) => {
-          const val = e.target.value;
-          setSearchName(val);
-          setCurrentPage(1);
-          fetchProducts(searchCode, val);
-        }}
-        className="w-full sm:w-56 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-      />
-
-      {/* Nút Xóa tìm kiếm */}
-      {(searchCode || searchName) && (
-        <button
-          onClick={() => {
-            setSearchCode('');
-            setSearchName('');
-            setCurrentPage(1);
-            fetchProducts('', '');
-          }}
-          className="bg-zinc-200 text-zinc-800 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-zinc-300 transition-all w-full sm:w-auto"
-        >
-          Xóa lọc
-        </button>
-      )}
-    </div>
+                  <input
+                    type="text"
+                    placeholder="Tìm theo Mã SP..."
+                    value={searchCode}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSearchCode(val);
+                      setCurrentPage(1);
+                      fetchProducts(val, searchName);
+                    }}
+                    className="w-full sm:w-48 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tìm theo Tên SP..."
+                    value={searchName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSearchName(val);
+                      setCurrentPage(1);
+                      fetchProducts(searchCode, val);
+                    }}
+                    className="w-full sm:w-56 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  />
+                  {(searchCode || searchName) && (
+                    <button
+                      onClick={() => {
+                        setSearchCode('');
+                        setSearchName('');
+                        setCurrentPage(1);
+                        fetchProducts('', '');
+                      }}
+                      className="bg-zinc-200 text-zinc-800 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-zinc-300 transition-all w-full sm:w-auto"
+                    >
+                      Xóa lọc
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -626,23 +649,19 @@ export default function Home() {
                         const giaGoc = Number(p.gia) || 0;
                         const tienLoi = (giaGoc * chietKhau) / 100;
 
-                        // Tính tổng tồn kho từ tất cả các size
-                        const totalVariantStock = p.variants?.reduce(
-                          (sum, v) => sum + (Number(v.ton_kho) || 0),
-                          0
-                        ) || 0;
+                        const totalVariantStock =
+                          p.variants?.reduce(
+                            (sum, v) => sum + (Number(v.ton_kho) || 0),
+                            0
+                          ) || 0;
 
                         return (
                           <tr key={p.id} className="hover:bg-zinc-50/80 transition-colors">
                             <td className="py-4 px-4 font-bold text-zinc-900">{p.ma_san_pham}</td>
                             <td className="py-4 px-4 font-medium">{p.ten_san_pham}</td>
-                            
-                            {/* Tổng tồn kho thay cho Giá gốc */}
                             <td className="py-4 px-4 text-center font-bold text-zinc-900">
                               {totalVariantStock} cái
                             </td>
-
-                            {/* Badge Chiết khấu có viền xanh lá nhẹ */}
                             <td className="py-4 px-4 text-center">
                               {chietKhau > 0 ? (
                                 <div className="inline-flex flex-col items-center">
@@ -657,9 +676,7 @@ export default function Home() {
                                 <span className="text-zinc-400 text-xs">0%</span>
                               )}
                             </td>
-
                             <td className="py-4 px-4 font-bold text-zinc-900">{giaGoc.toLocaleString('vi-VN')} đ</td>
-                            
                             <td className="py-4 px-4">
                               <div className="flex flex-wrap gap-1.5">
                                 {p.variants && p.variants.length > 0 ? (
@@ -676,7 +693,6 @@ export default function Home() {
                                 )}
                               </div>
                             </td>
-
                             <td className="py-4 px-4 text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <button
@@ -851,37 +867,72 @@ export default function Home() {
                         <th className="p-3">Size</th>
                         <th className="p-3">Đơn giá gốc</th>
                         <th className="p-3">Số lượng</th>
+                        <th className="p-3">Giảm giá món</th>
                         <th className="p-3">Thành tiền</th>
                         <th className="p-3 text-center">Xóa</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200">
-                      {cart.map((item, index) => (
-                        <tr key={index}>
-                          <td className="p-3 font-bold text-zinc-900">{item.ma_san_pham}</td>
-                          <td className="p-3">{item.ten_san_pham}</td>
-                          <td className="p-3 font-semibold text-zinc-800">Size {item.size}</td>
-                          <td className="p-3">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
-                          <td className="p-3 font-bold">{item.so_luong}</td>
-                          <td className="p-3 font-bold text-zinc-900">
-                            {(Number(item.don_gia) * Number(item.so_luong)).toLocaleString('vi-VN')} đ
-                          </td>
-                          <td className="p-3 text-center">
-                            <button
-                              onClick={() => handleRemoveFromCart(index)}
-                              className="text-red-600 font-semibold hover:bg-red-50 px-2 py-1 rounded text-xs transition-all"
-                            >
-                              Xóa
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {cart.map((item, index) => {
+                        const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+                        const itemDiscountAmt = calculateItemDiscountAmount(item);
+                        const lineFinal = lineTotal - itemDiscountAmt;
+
+                        return (
+                          <tr key={index}>
+                            <td className="p-3 font-bold text-zinc-900">{item.ma_san_pham}</td>
+                            <td className="p-3">{item.ten_san_pham}</td>
+                            <td className="p-3 font-semibold text-zinc-800">Size {item.size}</td>
+                            <td className="p-3">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
+                            <td className="p-3 font-bold">{item.so_luong}</td>
+                            
+                            {/* TÙY CHỌN GIẢM GIÁ THEO % HOẶC VNĐ CHO TỪNG SẢN PHẨM */}
+                            <td className="p-3">
+                              <div className="flex items-center gap-1.5">
+                                <select
+                                  value={item.itemDiscountType || 'percent'}
+                                  onChange={(e) => handleItemDiscountChange(index, 'itemDiscountType', e.target.value)}
+                                  className="border border-zinc-300 p-1.5 rounded text-xs bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                                >
+                                  <option value="percent">%</option>
+                                  <option value="vnd">VNĐ</option>
+                                </select>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={item.itemDiscountValue ?? 0}
+                                  onChange={(e) => handleItemDiscountChange(index, 'itemDiscountValue', e.target.value)}
+                                  placeholder="0"
+                                  className="border border-zinc-300 p-1.5 rounded text-xs w-24 bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                                />
+                              </div>
+                              {itemDiscountAmt > 0 && (
+                                <span className="text-[11px] text-red-600 block mt-0.5">
+                                  -{itemDiscountAmt.toLocaleString('vi-VN')} đ
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="p-3 font-bold text-zinc-900">
+                              {lineFinal.toLocaleString('vi-VN')} đ
+                            </td>
+                            <td className="p-3 text-center">
+                              <button
+                                onClick={() => handleRemoveFromCart(index)}
+                                className="text-red-600 font-semibold hover:bg-red-50 px-2 py-1 rounded text-xs transition-all"
+                              >
+                                Xóa
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
 
                   <div className="bg-white p-4 rounded-xl border border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <label className="text-xs font-semibold text-zinc-600">Giảm giá thêm (VNĐ):</label>
+                      <label className="text-xs font-semibold text-zinc-600">Giảm giá thêm hóa đơn (VNĐ):</label>
                       <input
                         type="number"
                         min="0"
@@ -893,10 +944,10 @@ export default function Home() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-xs text-zinc-500">Tạm tính: {subTotal.toLocaleString('vi-VN')} đ</p>
+                      <p className="text-xs text-zinc-500">Tạm tính (sau giảm từng món): {subTotal.toLocaleString('vi-VN')} đ</p>
                       {Number(orderDiscount) > 0 && (
                         <p className="text-xs text-red-600 font-semibold">
-                          Giảm giá: -{Number(orderDiscount).toLocaleString('vi-VN')} đ
+                          Giảm đơn: -{Number(orderDiscount).toLocaleString('vi-VN')} đ
                         </p>
                       )}
                       <span className="text-sm font-semibold text-zinc-700">
@@ -984,7 +1035,7 @@ export default function Home() {
                               <div className="text-right">
                                 {giamGia > 0 && (
                                   <span className="block text-xs text-red-600 font-semibold">
-                                    Đã giảm: -{giamGia.toLocaleString('vi-VN')} đ
+                                    Đã giảm đơn: -{giamGia.toLocaleString('vi-VN')} đ
                                   </span>
                                 )}
                                 <span className="font-bold text-zinc-900 text-base">
@@ -1010,12 +1061,16 @@ export default function Home() {
                             <ul className="list-disc list-inside space-y-1">
                               {order.items?.map((item) => (
                                 <li key={item.id || item.ma_san_pham}>
-                                  <strong className="text-zinc-900">{item.ma_san_pham}</strong> - {item.ten_san_pham} (Size{' '}
-                                  <span className="font-bold text-zinc-900">{item.size}</span>) x{' '}
+                                  <strong className="text-zinc-900">{item.ma_san_pham}</strong> - {item.ten_san_pham} ({item.size}) x{' '}
                                   <strong className="text-zinc-900">{item.so_luong}</strong> ={' '}
                                   <span className="font-semibold text-zinc-900">
                                     {Number(item.thanh_tien || item.don_gia * item.so_luong).toLocaleString('vi-VN')} đ
                                   </span>
+                                  {Number(item.giam_gia_item) > 0 && (
+                                    <span className="text-red-600 ml-1">
+                                      (Giảm: -{Number(item.giam_gia_item).toLocaleString('vi-VN')} đ)
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
@@ -1035,7 +1090,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* KHUNG IN HÓA ĐƠN */}
+      {/* KHUNG IN HÓA ĐƠN (Cập nhật cột Tên SP (Size), Đơn giá, Giảm giá, Thành tiền) */}
       {orderToPrint && (
         <div id="print-receipt-area" className="hidden print:block">
           <div style={{ textAlign: 'center', marginBottom: '8px' }}>
@@ -1051,30 +1106,40 @@ export default function Home() {
 
           <div style={{ borderTop: '1px dashed #000', margin: '6px 0' }}></div>
 
-          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse', fontSize: '10px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #000' }}>
-                <th style={{ padding: '2px 0' }}>Tên SP</th>
-                <th style={{ padding: '2px 0' }}>Size</th>
-                <th style={{ textAlign: 'center' }}>SL</th>
-                <th style={{ textAlign: 'right' }}>Thành tiền</th>
+                <th style={{ padding: '2px 0', width: '38%' }}>Tên SP</th>
+                <th style={{ textAlign: 'right', width: '20%' }}>Đ.Giá</th>
+                <th style={{ textAlign: 'center', width: '8%' }}>SL</th>
+                <th style={{ textAlign: 'right', width: '16%' }}>G.Giá</th>
+                <th style={{ textAlign: 'right', width: '18%' }}>T.Tiền</th>
               </tr>
             </thead>
             <tbody>
-              {orderToPrint.items?.map((item, idx) => (
-                <tr key={idx}>
-                  <td style={{ padding: '3px 0' }}>
-                    {item.ten_san_pham}
-                  </td>
-                  <td style={{ padding: '3px 0' }}>
-                    {item.size}
-                  </td>
-                  <td style={{ textAlign: 'center' }}>{item.so_luong}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    {Number(item.thanh_tien || item.don_gia * item.so_luong).toLocaleString('vi-VN')}
-                  </td>
-                </tr>
-              ))}
+              {orderToPrint.items?.map((item, idx) => {
+                const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+                const discountVal = Number(item.giam_gia_item || 0);
+                const lineFinal = item.thanh_tien ?? (lineTotal - discountVal);
+
+                return (
+                  <tr key={idx}>
+                    <td style={{ padding: '3px 0' }}>
+                      {item.ten_san_pham} ({item.size})
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {Number(item.don_gia).toLocaleString('vi-VN')}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>{item.so_luong}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {discountVal > 0 ? discountVal.toLocaleString('vi-VN') : '0'}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {lineFinal.toLocaleString('vi-VN')}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
@@ -1083,7 +1148,7 @@ export default function Home() {
           <div style={{ textAlign: 'right' }}>
             {Number(orderToPrint.giam_gia) > 0 && (
               <p style={{ margin: '2px 0' }}>
-                Giảm giá: -{Number(orderToPrint.giam_gia).toLocaleString('vi-VN')} đ
+                Giảm giá đơn: -{Number(orderToPrint.giam_gia).toLocaleString('vi-VN')} đ
               </p>
             )}
             <p style={{ fontSize: '13px', fontWeight: 'bold', margin: '4px 0' }}>
