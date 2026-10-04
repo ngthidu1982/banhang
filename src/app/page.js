@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   // Navigation State
   const [activeTab, setActiveTab] = useState('products'); // 'products' | 'checkout'
 
@@ -74,6 +75,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchProducts();
     fetchOrdersHistory();
   }, []);
@@ -231,6 +233,28 @@ export default function Home() {
     }
   };
 
+  const handleDeleteOrder = async (orderId, maHoaDon) => {
+  if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${maHoaDon}? Tồn kho của các sản phẩm trong đơn sẽ được HOÀN TRẢ LẠI!`)) {
+    try {
+      const res = await fetch(`/api/orders?id=${orderId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert('Đã xóa đơn hàng và hoàn lại số lượng sản phẩm vào kho!');
+        fetchOrdersHistory(); // Làm mới lịch sử đơn hàng
+        fetchProducts(searchQuery); // Làm mới số lượng tồn kho sản phẩm
+      } else {
+        alert('Lỗi: ' + data.error);
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi xóa đơn hàng!');
+    }
+  }
+};
+
   // --- PRODUCT FORM HANDLERS ---
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -292,6 +316,10 @@ export default function Home() {
 
   const selectedProdObj = products.find((p) => p.ma_san_pham === selectedProduct);
 
+  if (!mounted) {
+    return null; // Hoặc trả về một khung loading nhẹ <div className="p-8">Đang tải...</div>
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-900">
       {/* CSS DÙNG RIÊNG CHO MÁY IN KHỔ K80/RICHTA */}
@@ -307,7 +335,7 @@ export default function Home() {
             position: absolute;
             left: 0;
             top: 0;
-            width: 76mm; /* Cấu hình vừa vặn khổ giấy máy in nhiệt K80 */
+            width: 76mm;
             padding: 2mm;
             font-family: 'Courier New', Courier, monospace;
             font-size: 11px;
@@ -851,6 +879,12 @@ export default function Home() {
                               >
                                 🖨️ In Hóa Đơn
                               </button>
+                              <button
+    onClick={() => handleDeleteOrder(order.id, order.ma_hoa_don)}
+    className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-red-700 transition"
+  >
+    🗑️ Xóa đơn
+  </button>
                             </div>
                           </div>
                           <div className="text-sm text-gray-700">

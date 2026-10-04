@@ -92,3 +92,39 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get('id');
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Thiếu ID hóa đơn!' }, { status: 400 });
+    }
+
+    // 1. Lấy danh sách chi tiết các mặt hàng trong hóa đơn
+    const [items] = await db.query(
+      'SELECT ma_san_pham, size, so_luong FROM hoa_don_chi_tiet WHERE hoa_don_id = ?',
+      [orderId]
+    );
+
+    // 2. Hoàn trả số lượng tồn kho cho từng sản phẩm theo mã và size
+    for (const item of items) {
+      await db.query(
+        'UPDATE sp_variant SET ton_kho = ton_kho + ? WHERE ma_san_pham = ? AND size = ?',
+        [Number(item.so_luong), item.ma_san_pham, item.size]
+      );
+    }
+
+    // 3. Xóa chi tiết hóa đơn
+    await db.query('DELETE FROM hoa_don_chi_tiet WHERE hoa_don_id = ?', [orderId]);
+
+    // 4. Xóa hóa đơn chính
+    await db.query('DELETE FROM hoa_don WHERE id = ?', [orderId]);
+
+    return NextResponse.json({ message: 'Xóa đơn hàng và hoàn tồn kho thành công!' });
+  } catch (error) {
+    console.error('Lỗi khi xóa đơn hàng:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
