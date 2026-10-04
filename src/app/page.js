@@ -1135,6 +1135,7 @@ export default function Home() {
             <h2 style={{ fontSize: '14px', fontWeight: 'bold', margin: '0' }}>CỬA HÀNG VIỆT TIẾN</h2>
             <p style={{ margin: '2px 0' }}>ĐC: 552 Đường Độc Lập, Phường Phú Mỹ, TP. Hồ Chí Minh</p>
             <p style={{ margin: '2px 0' }}>SĐT: 037.686.0039</p>
+            <p style={{ margin: '2px 0' }}>MST: 0376860039</p>
             <h3 style={{ fontSize: '13px', fontWeight: 'bold', margin: '8px 0 2px 0' }}>HÓA ĐƠN THANH TOÁN</h3>
             <p style={{ margin: '0' }}>Mã HD: {orderToPrint.ma_hoa_don}</p>
             <p style={{ margin: '0' }}>
