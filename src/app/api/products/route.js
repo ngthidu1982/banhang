@@ -4,17 +4,22 @@ import { NextResponse } from 'next/server';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-
+    const searchCode = searchParams.get('searchCode') || '';
+const searchName = searchParams.get('searchName') || '';
     let productsQuery = 'SELECT * FROM sanpham';
-    let queryParams = [];
+    let params = [];
+    
+    if (searchCode) {
+  query += ' AND ma_san_pham LIKE ?';
+  params.push(`%${searchCode}%`);
+}
 
-    if (search.trim() !== '') {
-      productsQuery += ' WHERE ma_san_pham LIKE ?';
-      queryParams.push(`%${search.trim()}%`);
-    }
+if (searchName) {
+  query += ' AND ten_san_pham LIKE ?';
+  params.push(`%${searchName}%`);
+}
 
-    const [products] = await db.query(productsQuery, queryParams);
+    const [products] = await db.query(productsQuery, params);
     const [variants] = await db.query('SELECT * FROM sp_variant');
 
     const totalProducts = products.length;

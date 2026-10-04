@@ -21,6 +21,8 @@ export default function Home() {
     stockBySize: {},
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchCode, setSearchCode] = useState('');
+  const [searchName, setSearchName] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     ma_san_pham: '',
@@ -46,24 +48,26 @@ export default function Home() {
   });
   const [orderToPrint, setOrderToPrint] = useState(null);
 
-  const fetchProducts = async (query = '') => {
-    try {
-      const res = await fetch(`/api/products?search=${encodeURIComponent(query)}`);
-      const data = await res.json();
+  const fetchProducts = async (code = searchCode, name = searchName) => {
+  try {
+    const res = await fetch(
+      `/api/products?searchCode=${encodeURIComponent(code)}&searchName=${encodeURIComponent(name)}`
+    );
+    const data = await res.json();
 
-      if (data && data.products) {
-        setProducts(data.products);
-        setStats(data.stats || {});
-      } else if (Array.isArray(data)) {
-        setProducts(data);
-      } else {
-        setProducts([]);
-      }
-    } catch (error) {
-      console.error('Lỗi fetch:', error);
+    if (data && data.products) {
+      setProducts(data.products);
+      setStats(data.stats || {});
+    } else if (Array.isArray(data)) {
+      setProducts(data);
+    } else {
       setProducts([]);
     }
-  };
+  } catch (error) {
+    console.error('Lỗi fetch:', error);
+    setProducts([]);
+  }
+};
 
   const fetchOrdersHistory = async () => {
     try {
@@ -556,27 +560,50 @@ export default function Home() {
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="p-4 border-b border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-3">
                 <h2 className="text-lg font-bold text-zinc-900">Danh Sách Sản Phẩm</h2>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm theo Mã sản phẩm..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="w-full md:w-80 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => {
-                        setSearchQuery('');
-                        setCurrentPage(1);
-                        fetchProducts('');
-                      }}
-                      className="bg-zinc-200 text-zinc-800 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-zinc-300 transition-all"
-                    >
-                      Xóa tìm
-                    </button>
-                  )}
-                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+      {/* Ô 1: Tìm theo Mã */}
+      <input
+        type="text"
+        placeholder="Tìm theo Mã SP..."
+        value={searchCode}
+        onChange={(e) => {
+          const val = e.target.value;
+          setSearchCode(val);
+          setCurrentPage(1);
+          fetchProducts(val, searchName);
+        }}
+        className="w-full sm:w-48 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+      />
+
+      {/* Ô 2: Tìm theo Tên */}
+      <input
+        type="text"
+        placeholder="Tìm theo Tên SP..."
+        value={searchName}
+        onChange={(e) => {
+          const val = e.target.value;
+          setSearchName(val);
+          setCurrentPage(1);
+          fetchProducts(searchCode, val);
+        }}
+        className="w-full sm:w-56 border border-zinc-300 px-3.5 py-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+      />
+
+      {/* Nút Xóa tìm kiếm */}
+      {(searchCode || searchName) && (
+        <button
+          onClick={() => {
+            setSearchCode('');
+            setSearchName('');
+            setCurrentPage(1);
+            fetchProducts('', '');
+          }}
+          className="bg-zinc-200 text-zinc-800 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-zinc-300 transition-all w-full sm:w-auto"
+        >
+          Xóa lọc
+        </button>
+      )}
+    </div>
               </div>
 
               <div className="overflow-x-auto">
