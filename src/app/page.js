@@ -1161,7 +1161,7 @@ export default function Home() {
                   ? Number(item.giam_gia_percent)
                   : totalGoc > 0 ? (giamGiaTien / totalGoc) * 100 : 0;
 
-                const lineFinal = item.thanh_tien ?? (totalGoc - giamGiaTien);
+                const lineFinal = Number(item.thanh_tien ?? (totalGoc - giamGiaTien));
 
                 return (
                   <tr key={idx} style={{ borderBottom: '1px dashed #ccc' }}>
