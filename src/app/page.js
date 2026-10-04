@@ -835,7 +835,7 @@ export default function Home() {
                   className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                 >
                   <option value="">-- Chọn Sản phẩm ({filteredCheckoutProducts.length}) --</option>
-                  {filteredCheckoutProducts.map((p) => (
+                  {filteredCheckoutProducts.slice(0, 20).map((p) => (
                     <option key={p.id} value={p.ma_san_pham}>
                       {p.ma_san_pham} - {p.ten_san_pham} ({Number(p.gia).toLocaleString('vi-VN')} đ)
                     </option>
