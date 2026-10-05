@@ -398,7 +398,7 @@ export default function Home() {
   })() : null;
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 text-zinc-900 font-sans">
+    <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50 text-zinc-900 font-sans">
       <style jsx global>{`
         @media print {
           body * {
@@ -425,14 +425,14 @@ export default function Home() {
       `}</style>
 
       {/* SIDEBAR NAVIGATION */}
-      <aside className="w-64 bg-zinc-900 text-white flex flex-col p-4 shadow-lg shrink-0 border-r border-zinc-800 no-print">
-        <div className="text-base font-bold uppercase tracking-wider mb-8 px-2 border-b border-zinc-800 pb-4 text-zinc-100">
+      <aside className="w-full md:w-64 bg-zinc-900 text-white flex flex-col p-4 shadow-lg shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 no-print">
+        <div className="text-base font-bold uppercase tracking-wider mb-4 md:mb-8 px-2 border-b border-zinc-800 pb-3 md:pb-4 text-zinc-100 text-center md:text-left">
           BÁN HÀNG & KHO
         </div>
-        <nav className="flex flex-col space-y-1.5">
+        <nav className="flex flex-row md:flex-col gap-2 md:space-y-1.5">
           <button
             onClick={() => setActiveTab('products')}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-sm font-medium transition-all ${
+            className={`flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-2.5 rounded-lg text-center md:text-left text-xs md:text-sm font-medium transition-all ${
               activeTab === 'products'
                 ? 'bg-white text-zinc-900 font-semibold shadow-sm'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
@@ -442,7 +442,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('checkout')}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-left text-sm font-medium transition-all ${
+            className={`flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-3 md:px-4 py-2.5 rounded-lg text-center md:text-left text-xs md:text-sm font-medium transition-all ${
               activeTab === 'checkout'
                 ? 'bg-white text-zinc-900 font-semibold shadow-sm'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
@@ -454,31 +454,31 @@ export default function Home() {
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 p-8 overflow-y-auto no-print">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto no-print">
         {/* TAB 1: QUẢN LÝ SẢN PHẨM */}
         {activeTab === 'products' && (
           <div>
-            <h1 className="text-2xl font-bold mb-6 text-zinc-900">Quản Lý Sản Phẩm & Tồn Kho</h1>
+            <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-zinc-900">Quản Lý Sản Phẩm & Tồn Kho</h1>
 
             {/* DASHBOARD TỔNG QUAN */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+              <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Số Sản Phẩm</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalProducts || 0} Mã</p>
+                <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">{stats.totalProducts || 0} Mã</p>
               </div>
-              <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+              <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Tồn Kho</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">{stats.totalStock || 0} Cái</p>
+                <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">{stats.totalStock || 0} Cái</p>
               </div>
-              <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+              <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Giá Trị Tiền Hàng (Giá Gốc)</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">
+                <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">
                   {Number(stats.totalValue || 0).toLocaleString('vi-VN')} đ
                 </p>
               </div>
-              <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+              <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                 <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Tiền Hàng Sau Chiết Khấu</p>
-                <p className="text-2xl font-bold text-zinc-900 mt-2">
+                <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">
                   {Number(stats.totalValueAfterDiscount || 0).toLocaleString('vi-VN')} đ
                 </p>
                 <span className="inline-block text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded mt-2">
@@ -488,10 +488,10 @@ export default function Home() {
             </div>
 
             {/* THỐNG KÊ THEO SIZE */}
-            <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm mb-8">
+            <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm mb-6 md:mb-8">
               <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Tồn Kho Theo Loại Size:</h3>
               {stats.stockBySize && Object.keys(stats.stockBySize).length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 md:gap-3">
                   {Object.entries(stats.stockBySize)
                     .sort(([a], [b]) => {
                       const numA = Number(a);
@@ -505,9 +505,9 @@ export default function Home() {
                       return a.localeCompare(b, undefined, { numeric: true });
                     })
                     .map(([size, count]) => (
-                      <div key={size} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 text-center">
+                      <div key={size} className="bg-zinc-50 border border-zinc-200 rounded-lg p-2.5 md:p-3 text-center">
                         <span className="block text-[11px] text-zinc-500 uppercase font-bold">Size</span>
-                        <span className="block text-xl font-black text-zinc-900 my-0.5">{size}</span>
+                        <span className="block text-lg md:text-xl font-black text-zinc-900 my-0.5">{size}</span>
                         <span className="block text-xs font-medium text-zinc-600">{count} cái</span>
                       </div>
                     ))}
@@ -518,15 +518,15 @@ export default function Home() {
             </div>
 
             {/* FORM THÊM / SỬA SẢN PHẨM */}
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm mb-8 space-y-4">
-              <h2 className="text-lg font-bold text-zinc-900">{editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form onSubmit={handleSubmit} className="bg-white p-4 md:p-6 rounded-xl border border-zinc-200 shadow-sm mb-6 md:mb-8 space-y-4">
+              <h2 className="text-base md:text-lg font-bold text-zinc-900">{editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 <input
                   type="text"
                   placeholder="Mã sản phẩm"
                   value={formData.ma_san_pham}
                   onChange={(e) => setFormData({ ...formData, ma_san_pham: e.target.value })}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                   required
                 />
                 <input
@@ -534,7 +534,7 @@ export default function Home() {
                   placeholder="Tên sản phẩm"
                   value={formData.ten_san_pham}
                   onChange={(e) => setFormData({ ...formData, ten_san_pham: e.target.value })}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                   required
                 />
                 <input
@@ -542,7 +542,7 @@ export default function Home() {
                   placeholder="Giá gốc"
                   value={formData.gia}
                   onChange={(e) => setFormData({ ...formData, gia: e.target.value })}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                   required
                 />
                 <input
@@ -552,7 +552,7 @@ export default function Home() {
                   placeholder="Chiết khấu (%)"
                   value={formData.chiet_khau}
                   onChange={(e) => setFormData({ ...formData, chiet_khau: e.target.value })}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                 />
               </div>
 
@@ -565,7 +565,7 @@ export default function Home() {
                       placeholder="Size (VD: 41)"
                       value={v.size}
                       onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-                      className="border border-zinc-300 p-2 rounded-lg w-1/3 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                      className="border border-zinc-300 p-2 rounded-lg flex-1 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                       required
                     />
                     <input
@@ -573,14 +573,14 @@ export default function Home() {
                       placeholder="Tồn kho (VD: 10)"
                       value={v.ton_kho}
                       onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
-                      className="border border-zinc-300 p-2 rounded-lg w-1/3 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                      className="border border-zinc-300 p-2 rounded-lg flex-1 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                       required
                     />
                     {formData.variants.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeVariantRow(index)}
-                        className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all"
+                        className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
                       >
                         Xóa
                       </button>
@@ -618,7 +618,7 @@ export default function Home() {
             {/* BẢNG SẢN PHẨM & TÌM KIẾM */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="p-4 border-b border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-3">
-                <h2 className="text-lg font-bold text-zinc-900">Danh Sách Sản Phẩm</h2>
+                <h2 className="text-base md:text-lg font-bold text-zinc-900 w-full md:w-auto text-left">Danh Sách Sản Phẩm</h2>
                 <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
                   <input
                     type="text"
@@ -661,16 +661,16 @@ export default function Home() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-sm text-zinc-800">
+                <table className="w-full border-collapse text-left text-sm text-zinc-800 min-w-[700px]">
                   <thead className="bg-zinc-100/80 text-zinc-900 font-semibold border-b border-zinc-200">
                     <tr>
-                      <th className="py-3.5 px-4">Mã SP</th>
-                      <th className="py-3.5 px-4">Tên SP</th>
-                      <th className="py-3.5 px-4 text-center">Tổng tồn kho</th>
-                      <th className="py-3.5 px-4 text-center">Chiết khấu</th>
-                      <th className="py-3.5 px-4">Giá niêm yết</th>
-                      <th className="py-3.5 px-4">Biến thể (Size - Tồn)</th>
-                      <th className="py-3.5 px-4 text-center">Hành động</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Mã SP</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Tên SP</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Tổng tồn kho</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Chiết khấu</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Giá niêm yết</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Biến thể (Size - Tồn)</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Hành động</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-200">
@@ -688,12 +688,12 @@ export default function Home() {
 
                         return (
                           <tr key={p.id} className="hover:bg-zinc-50/80 transition-colors">
-                            <td className="py-4 px-4 font-bold text-zinc-900">{p.ma_san_pham}</td>
+                            <td className="py-4 px-4 font-bold text-zinc-900 whitespace-nowrap">{p.ma_san_pham}</td>
                             <td className="py-4 px-4 font-medium">{p.ten_san_pham}</td>
-                            <td className="py-4 px-4 text-center font-bold text-zinc-900">
+                            <td className="py-4 px-4 text-center font-bold text-zinc-900 whitespace-nowrap">
                               {totalVariantStock} cái
                             </td>
-                            <td className="py-4 px-4 text-center">
+                            <td className="py-4 px-4 text-center whitespace-nowrap">
                               {chietKhau > 0 ? (
                                 <div className="inline-flex flex-col items-center">
                                   <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
@@ -707,14 +707,14 @@ export default function Home() {
                                 <span className="text-zinc-400 text-xs">0%</span>
                               )}
                             </td>
-                            <td className="py-4 px-4 font-bold text-zinc-900">{giaGoc.toLocaleString('vi-VN')} đ</td>
+                            <td className="py-4 px-4 font-bold text-zinc-900 whitespace-nowrap">{giaGoc.toLocaleString('vi-VN')} đ</td>
                             <td className="py-4 px-4">
                               <div className="flex flex-wrap gap-1.5">
                                 {p.variants && p.variants.length > 0 ? (
                                   p.variants.map((v, i) => (
                                     <span
                                       key={i}
-                                      className="inline-block bg-zinc-100 text-zinc-700 text-xs px-2 py-1 rounded border border-zinc-200"
+                                      className="inline-block bg-zinc-100 text-zinc-700 text-xs px-2 py-1 rounded border border-zinc-200 whitespace-nowrap"
                                     >
                                       <b>Size {v.size}</b>: {v.ton_kho} cái
                                     </span>
@@ -724,7 +724,7 @@ export default function Home() {
                                 )}
                               </div>
                             </td>
-                            <td className="py-4 px-4 text-center">
+                            <td className="py-4 px-4 text-center whitespace-nowrap">
                               <div className="flex items-center justify-center gap-2">
                                 <button
                                   onClick={() => handleEdit(p)}
@@ -756,12 +756,12 @@ export default function Home() {
 
               {/* PHÂN TRANG */}
               {products.length > 0 && (
-                <div className="flex items-center justify-between p-4 border-t border-zinc-200 text-xs text-zinc-600 bg-zinc-50/50">
+                <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-zinc-200 text-xs text-zinc-600 bg-zinc-50/50 gap-3">
                   <div>
                     Hiển thị <b>{startIndex + 1}</b> - <b>{Math.min(startIndex + ITEMS_PER_PAGE, products.length)}</b> trên <b>{products.length}</b> sản phẩm
                   </div>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap justify-center">
                     <button
                       onClick={() => goToPage(currentPage - 1)}
                       disabled={currentPage === 1}
@@ -801,13 +801,13 @@ export default function Home() {
         {/* TAB 2: THANH TOÁN & LỊCH SỬ THANH TOÁN */}
         {activeTab === 'checkout' && (
           <div>
-            <h1 className="text-2xl font-bold mb-6 text-zinc-900">Thanh Toán & Lịch Sử Giao Dịch</h1>
+            <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-zinc-900">Thanh Toán & Lịch Sử Giao Dịch</h1>
 
             {/* KHU VỰC TẠO ĐƠN HÀNG */}
-            <div className="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm mb-8">
-              <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-4">TẠO ĐƠN HÀNG MỚI</h2>
+            <div className="bg-white border border-zinc-200 p-4 md:p-6 rounded-xl shadow-sm mb-6 md:mb-8">
+              <h2 className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-wider mb-4">TẠO ĐƠN HÀNG MỚI</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4 items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-4 items-center">
                 <div className="relative">
                   <input
                     type="text"
@@ -832,7 +832,7 @@ export default function Home() {
                     setSelectedProduct(e.target.value);
                     setSelectedSize('');
                   }}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                 >
                   <option value="">-- Chọn Sản phẩm ({filteredCheckoutProducts.length}) --</option>
                   {filteredCheckoutProducts.slice(0, 20).map((p) => (
@@ -846,7 +846,7 @@ export default function Home() {
                   value={selectedSize}
                   onChange={(e) => setSelectedSize(e.target.value)}
                   disabled={!selectedProduct}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 font-medium text-sm disabled:bg-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 font-medium text-sm disabled:bg-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                 >
                   <option value="">-- Chọn Size --</option>
                   {selectedProdObj?.variants
@@ -875,105 +875,107 @@ export default function Home() {
                   placeholder="Số lượng"
                   value={buyQuantity}
                   onChange={(e) => setBuyQuantity(e.target.value)}
-                  className="border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                  className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
                 />
 
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="bg-zinc-900 text-white font-semibold p-2.5 rounded-lg hover:bg-zinc-800 transition-all text-sm shadow-sm"
+                  className="w-full bg-zinc-900 text-white font-semibold p-2.5 rounded-lg hover:bg-zinc-800 transition-all text-sm shadow-sm"
                 >
                   + Thêm vào giỏ
                 </button>
               </div>
 
               {cart.length > 0 && (
-                <div className="bg-zinc-50/50 rounded-xl border border-zinc-200 overflow-hidden shadow-sm mt-6 p-5">
+                <div className="bg-zinc-50/50 rounded-xl border border-zinc-200 overflow-hidden shadow-sm mt-6 p-3 md:p-5">
                   <h3 className="font-bold text-zinc-900 text-sm mb-3">Giỏ hàng hiện tại:</h3>
-                  <table className="w-full text-sm text-left border-collapse mb-4 bg-white rounded-lg overflow-hidden border border-zinc-200">
-                    <thead>
-                      <tr className="bg-zinc-100 text-zinc-900 border-b border-zinc-200">
-                        <th className="p-3">Mã SP</th>
-                        <th className="p-3">Tên SP</th>
-                        <th className="p-3">Size</th>
-                        <th className="p-3">Đơn giá gốc</th>
-                        <th className="p-3">Số lượng</th>
-                        <th className="p-3">Giảm giá món</th>
-                        <th className="p-3">Thành tiền</th>
-                        <th className="p-3 text-center">Xóa</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-200">
-                      {cart.map((item, index) => {
-                        const lineTotal = Number(item.don_gia) * Number(item.so_luong);
-                        const itemDiscountAmt = calculateItemDiscountAmount(item);
-                        const lineFinal = lineTotal - itemDiscountAmt;
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse mb-4 bg-white rounded-lg overflow-hidden border border-zinc-200 min-w-[650px]">
+                      <thead>
+                        <tr className="bg-zinc-100 text-zinc-900 border-b border-zinc-200">
+                          <th className="p-3 whitespace-nowrap">Mã SP</th>
+                          <th className="p-3 whitespace-nowrap">Tên SP</th>
+                          <th className="p-3 whitespace-nowrap">Size</th>
+                          <th className="p-3 whitespace-nowrap">Đơn giá gốc</th>
+                          <th className="p-3 whitespace-nowrap">Số lượng</th>
+                          <th className="p-3 whitespace-nowrap">Giảm giá món</th>
+                          <th className="p-3 whitespace-nowrap">Thành tiền</th>
+                          <th className="p-3 text-center whitespace-nowrap">Xóa</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-200">
+                        {cart.map((item, index) => {
+                          const lineTotal = Number(item.don_gia) * Number(item.so_luong);
+                          const itemDiscountAmt = calculateItemDiscountAmount(item);
+                          const lineFinal = lineTotal - itemDiscountAmt;
 
-                        return (
-                          <tr key={index}>
-                            <td className="p-3 font-bold text-zinc-900">{item.ma_san_pham}</td>
-                            <td className="p-3">{item.ten_san_pham}</td>
-                            <td className="p-3 font-semibold text-zinc-800">Size {item.size}</td>
-                            <td className="p-3">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
-                            <td className="p-3 font-bold">{item.so_luong}</td>
-                            
-                            <td className="p-3">
-                              <div className="flex items-center gap-1.5">
-                                <select
-                                  value={item.itemDiscountType || 'percent'}
-                                  onChange={(e) => handleItemDiscountChange(index, 'itemDiscountType', e.target.value)}
-                                  className="border border-zinc-300 p-1.5 rounded text-xs bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                          return (
+                            <tr key={index}>
+                              <td className="p-3 font-bold text-zinc-900 whitespace-nowrap">{item.ma_san_pham}</td>
+                              <td className="p-3 whitespace-nowrap">{item.ten_san_pham}</td>
+                              <td className="p-3 font-semibold text-zinc-800 whitespace-nowrap">Size {item.size}</td>
+                              <td className="p-3 whitespace-nowrap">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
+                              <td className="p-3 font-bold whitespace-nowrap">{item.so_luong}</td>
+                              
+                              <td className="p-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1.5">
+                                  <select
+                                    value={item.itemDiscountType || 'percent'}
+                                    onChange={(e) => handleItemDiscountChange(index, 'itemDiscountType', e.target.value)}
+                                    className="border border-zinc-300 p-1.5 rounded text-xs bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                                  >
+                                    <option value="percent">%</option>
+                                    <option value="vnd">VNĐ</option>
+                                  </select>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    value={item.itemDiscountValue ?? 0}
+                                    onChange={(e) => handleItemDiscountChange(index, 'itemDiscountValue', e.target.value)}
+                                    placeholder="0"
+                                    className="border border-zinc-300 p-1.5 rounded text-xs w-20 md:w-24 bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                                  />
+                                </div>
+                                {itemDiscountAmt > 0 && (
+                                  <span className="text-[11px] text-red-600 block mt-0.5 font-medium">
+                                    -{itemDiscountAmt.toLocaleString('vi-VN')} đ
+                                  </span>
+                                )}
+                              </td>
+
+                              <td className="p-3 font-bold text-zinc-900 whitespace-nowrap">
+                                {lineFinal.toLocaleString('vi-VN')} đ
+                              </td>
+                              <td className="p-3 text-center whitespace-nowrap">
+                                <button
+                                  onClick={() => handleRemoveFromCart(index)}
+                                  className="text-red-600 font-semibold hover:bg-red-50 px-2 py-1 rounded text-xs transition-all"
                                 >
-                                  <option value="percent">%</option>
-                                  <option value="vnd">VNĐ</option>
-                                </select>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={item.itemDiscountValue ?? 0}
-                                  onChange={(e) => handleItemDiscountChange(index, 'itemDiscountValue', e.target.value)}
-                                  placeholder="0"
-                                  className="border border-zinc-300 p-1.5 rounded text-xs w-24 bg-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                                />
-                              </div>
-                              {itemDiscountAmt > 0 && (
-                                <span className="text-[11px] text-red-600 block mt-0.5 font-medium">
-                                  -{itemDiscountAmt.toLocaleString('vi-VN')} đ
-                                </span>
-                              )}
-                            </td>
+                                  Xóa
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
 
-                            <td className="p-3 font-bold text-zinc-900">
-                              {lineFinal.toLocaleString('vi-VN')} đ
-                            </td>
-                            <td className="p-3 text-center">
-                              <button
-                                onClick={() => handleRemoveFromCart(index)}
-                                className="text-red-600 font-semibold hover:bg-red-50 px-2 py-1 rounded text-xs transition-all"
-                              >
-                                Xóa
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-
-                  <div className="bg-white p-4 rounded-xl border border-zinc-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-semibold text-zinc-600">Giảm giá thêm hóa đơn (VNĐ):</label>
+                  <div className="bg-white p-4 rounded-xl border border-zinc-200 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                      <label className="text-xs font-semibold text-zinc-600 shrink-0">Giảm giá thêm hóa đơn (VNĐ):</label>
                       <input
                         type="number"
                         min="0"
                         placeholder="0 đ"
                         value={orderDiscount}
                         onChange={(e) => setOrderDiscount(e.target.value)}
-                        className="border border-zinc-300 p-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
+                        className="w-full sm:w-44 border border-zinc-300 p-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white"
                       />
                     </div>
 
-                    <div className="text-right">
+                    <div className="text-left md:text-right">
                       <p className="text-xs text-zinc-500">Tạm tính (sau giảm từng món): {subTotal.toLocaleString('vi-VN')} đ</p>
                       {Number(orderDiscount) > 0 && (
                         <p className="text-xs text-red-600 font-semibold">
@@ -981,13 +983,13 @@ export default function Home() {
                         </p>
                       )}
                       <span className="text-sm font-semibold text-zinc-700">
-                        Thành tiền: <strong className="text-zinc-900 text-xl font-bold ml-1">{finalTotal.toLocaleString('vi-VN')} đ</strong>
+                        Thành tiền: <strong className="text-zinc-900 text-lg md:text-xl font-bold ml-1">{finalTotal.toLocaleString('vi-VN')} đ</strong>
                       </span>
                     </div>
 
                     <button
                       onClick={handleCheckout}
-                      className="bg-zinc-900 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-zinc-800 shadow transition-all flex items-center gap-2 text-sm"
+                      className="bg-zinc-900 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-zinc-800 shadow transition-all flex items-center justify-center gap-2 text-sm w-full md:w-auto"
                     >
                       THANH TOÁN & IN
                     </button>
@@ -997,11 +999,11 @@ export default function Home() {
             </div>
 
             {/* THỐNG KÊ DOANH THU & LỊCH SỬ */}
-            <div className="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm mb-8">
-              <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-4">THỐNG KÊ DOANH THU & LỊCH SỬ</h2>
+            <div className="bg-white border border-zinc-200 p-4 md:p-6 rounded-xl shadow-sm mb-6 md:mb-8">
+              <h2 className="text-xs md:text-sm font-bold text-zinc-500 uppercase tracking-wider mb-4">THỐNG KÊ DOANH THU & LỊCH SỬ</h2>
 
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-zinc-200">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <label htmlFor="filter-date" className="font-semibold text-zinc-700 text-xs uppercase tracking-wider">
                     Chọn ngày xem lịch sử:
                   </label>
@@ -1010,34 +1012,34 @@ export default function Home() {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="border border-zinc-300 p-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                    className="border border-zinc-300 p-2 rounded-lg bg-zinc-50 text-zinc-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-zinc-900 w-full sm:w-auto"
                   />
                 </div>
               </div>
 
               {/* CARD TỔNG TIỀN */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-6">
+                <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Doanh Thu Ngày ({new Date(selectedDate).toLocaleDateString('vi-VN')})
                   </p>
-                  <p className="text-2xl font-bold text-zinc-900 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">
                     {historyStats.totalBySelectedDate.toLocaleString('vi-VN')} đ
                   </p>
                 </div>
 
-                <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+                <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Doanh Thu Tháng ({historyStats.filterMonthDisplay})
                   </p>
-                  <p className="text-2xl font-bold text-zinc-900 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">
                     {historyStats.totalBySelectedMonth.toLocaleString('vi-VN')} đ
                   </p>
                 </div>
 
-                <div className="bg-white border border-zinc-200 p-5 rounded-xl shadow-sm">
+                <div className="bg-white border border-zinc-200 p-4 md:p-5 rounded-xl shadow-sm sm:col-span-2 md:col-span-1">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tổng Doanh Thu Toàn Bộ</p>
-                  <p className="text-2xl font-bold text-zinc-900 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-zinc-900 mt-2">
                     {historyStats.grandTotal.toLocaleString('vi-VN')} đ
                   </p>
                 </div>
@@ -1054,36 +1056,38 @@ export default function Home() {
                       const giamGiaDon = Number(order.giam_gia) || 0;
                       return (
                         <div key={order.id || order.ma_hoa_don} className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 shadow-sm">
-                          <div className="flex justify-between items-center border-b border-zinc-200 pb-3 mb-3">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-zinc-200 pb-3 mb-3 gap-2">
                             <div>
                               <span className="font-bold text-zinc-900">{order.ma_hoa_don}</span>
-                              <span className="text-xs text-zinc-500 ml-3">
+                              <span className="text-xs text-zinc-500 block sm:inline sm:ml-3">
                                 {new Date(order.ngay_tao).toLocaleTimeString('vi-VN')} - {new Date(order.ngay_tao).toLocaleDateString('vi-VN')}
                               </span>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <div className="text-right">
+                            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 md:gap-3">
+                              <div className="text-left sm:text-right">
                                 {giamGiaDon > 0 && (
                                   <span className="block text-xs text-red-600 font-semibold">
                                     Đã giảm đơn: -{giamGiaDon.toLocaleString('vi-VN')} đ
                                   </span>
                                 )}
-                                <span className="font-bold text-zinc-900 text-base">
+                                <span className="font-bold text-zinc-900 text-sm md:text-base">
                                   Tổng: {Number(order.tong_tien).toLocaleString('vi-VN')} đ
                                 </span>
                               </div>
-                              <button
-                                onClick={() => handlePrintOrder(order)}
-                                className="bg-zinc-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-all"
-                              >
-                                In Hóa Đơn
-                              </button>
-                              <button
-                                onClick={() => handleDeleteOrder(order.id, order.ma_hoa_don)}
-                                className="bg-white border border-red-200 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all"
-                              >
-                                Xóa đơn
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handlePrintOrder(order)}
+                                  className="bg-zinc-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-all"
+                                >
+                                  In Hóa Đơn
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteOrder(order.id, order.ma_hoa_don)}
+                                  className="bg-white border border-red-200 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-red-50 transition-all"
+                                >
+                                  Xóa đơn
+                                </button>
+                              </div>
                             </div>
                           </div>
 
