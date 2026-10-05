@@ -482,7 +482,7 @@ export default function Home() {
                   {Number(stats.totalValueAfterDiscount || 0).toLocaleString('vi-VN')} đ
                 </p>
                 <span className="inline-block text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded mt-2">
-                  Tiền lời chiết khấu: +{Number(stats.totalDiscountProfit || 0).toLocaleString('vi-VN')} đ
+                  Tiền lời: +{Number(stats.totalDiscountProfit || 0).toLocaleString('vi-VN')} đ
                 </span>
               </div>
             </div>
@@ -559,32 +559,34 @@ export default function Home() {
               <div className="space-y-2 pt-2">
                 <label className="font-medium text-sm block text-zinc-700">Danh sách Biến thể (Size & Tồn kho):</label>
                 {formData.variants.map((v, index) => (
-                  <div key={index} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 items-center">
   <input
     type="text"
     placeholder="Size"
     value={v.size}
     onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-    className="border border-zinc-300 p-2 rounded-lg w-28 sm:w-36 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+    className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
     required
   />
-  <input
-    type="number"
-    placeholder="Tồn kho"
-    value={v.ton_kho}
-    onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
-    className="border border-zinc-300 p-2 rounded-lg w-28 sm:w-36 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-    required
-  />
-  {formData.variants.length > 1 && (
-    <button
-      type="button"
-      onClick={() => removeVariantRow(index)}
-      className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
-    >
-      Xóa
-    </button>
-  )}
+  <div className="flex gap-2 items-center w-full">
+    <input
+      type="number"
+      placeholder="Tồn kho"
+      value={v.ton_kho}
+      onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
+      className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+      required
+    />
+    {formData.variants.length > 1 && (
+      <button
+        type="button"
+        onClick={() => removeVariantRow(index)}
+        className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2.5 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
+      >
+        Xóa
+      </button>
+    )}
+  </div>
 </div>
                 ))}
                 <button
