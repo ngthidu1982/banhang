@@ -559,33 +559,33 @@ export default function Home() {
               <div className="space-y-2 pt-2">
                 <label className="font-medium text-sm block text-zinc-700">Danh sách Biến thể (Size & Tồn kho):</label>
                 {formData.variants.map((v, index) => (
-                  <div key={index} className="flex gap-2 items-center">
-                    <input
-                      type="text"
-                      placeholder="Size (VD: 41)"
-                      value={v.size}
-                      onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-                      className="border border-zinc-300 p-2 rounded-lg flex-1 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-                      required
-                    />
-                    <input
-                      type="number"
-                      placeholder="Tồn kho (VD: 10)"
-                      value={v.ton_kho}
-                      onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
-                      className="border border-zinc-300 p-2 rounded-lg flex-1 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-                      required
-                    />
-                    {formData.variants.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeVariantRow(index)}
-                        className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
-                      >
-                        Xóa
-                      </button>
-                    )}
-                  </div>
+                  <div key={index} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
+  <input
+    type="text"
+    placeholder="Size"
+    value={v.size}
+    onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+    className="border border-zinc-300 p-2 rounded-lg w-28 sm:w-36 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+    required
+  />
+  <input
+    type="number"
+    placeholder="Tồn kho"
+    value={v.ton_kho}
+    onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
+    className="border border-zinc-300 p-2 rounded-lg w-28 sm:w-36 bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+    required
+  />
+  {formData.variants.length > 1 && (
+    <button
+      type="button"
+      onClick={() => removeVariantRow(index)}
+      className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
+    >
+      Xóa
+    </button>
+  )}
+</div>
                 ))}
                 <button
                   type="button"
@@ -709,7 +709,7 @@ export default function Home() {
                             </td>
                             <td className="py-4 px-4 font-bold text-zinc-900 whitespace-nowrap">{giaGoc.toLocaleString('vi-VN')} đ</td>
                             <td className="py-4 px-4">
-                              <div className="flex flex-wrap gap-1.5">
+                              <div className="flex flex-wrap items-center gap-1.5 min-h-[58px]">
                                 {p.variants && p.variants.length > 0 ? (
                                   p.variants.map((v, i) => (
                                     <span
