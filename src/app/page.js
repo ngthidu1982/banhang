@@ -4,6 +4,49 @@ import { useState, useEffect, useMemo } from 'react';
 
 const ITEMS_PER_PAGE = 10;
 
+// Hàm hỗ trợ tính toán dải phân trang có dấu ...
+function getPaginationRange(currentPage, totalPages, siblingCount = 1) {
+  const totalPageNumbers = siblingCount + 5;
+
+  if (totalPageNumbers >= totalPages) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+  const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+
+  const shouldShowLeftDots = leftSiblingIndex > 2;
+  const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
+
+  const firstPageIndex = 1;
+  const lastPageIndex = totalPages;
+
+  if (!shouldShowLeftDots && shouldShowRightDots) {
+    let leftItemCount = 3 + 2 * siblingCount;
+    let leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+    return [...leftRange, '...', totalPages];
+  }
+
+  if (shouldShowLeftDots && !shouldShowRightDots) {
+    let rightItemCount = 3 + 2 * siblingCount;
+    let rightRange = Array.from(
+      { length: rightItemCount },
+      (_, i) => totalPages - rightItemCount + i + 1
+    );
+    return [firstPageIndex, '...', ...rightRange];
+  }
+
+  if (shouldShowLeftDots && shouldShowRightDots) {
+    let middleRange = Array.from(
+      { length: rightSiblingIndex - leftSiblingIndex + 1 },
+      (_, i) => leftSiblingIndex + i
+    );
+    return [firstPageIndex, '...', middleRange, '...', lastPageIndex].flat();
+  }
+
+  return [];
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   // Navigation State
@@ -12,6 +55,7 @@ export default function Home() {
   // Products State
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPageInput, setJumpPageInput] = useState('');
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalStock: 0,
@@ -97,6 +141,19 @@ export default function Home() {
       setCurrentPage(page);
     }
   };
+
+  const handleJumpPage = (e) => {
+    e.preventDefault();
+    const pageNum = parseInt(jumpPageInput, 10);
+    if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+      goToPage(pageNum);
+      setJumpPageInput('');
+    }
+  };
+
+  const paginationRange = useMemo(() => {
+    return getPaginationRange(currentPage, totalPages);
+  }, [currentPage, totalPages]);
 
   // Lọc sản phẩm ở Tab Thanh Toán
   const filteredCheckoutProducts = useMemo(() => {
@@ -240,10 +297,13 @@ export default function Home() {
     const itemsForPayload = cart.map((item) => {
       const lineTotal = Number(item.don_gia) * Number(item.so_luong);
       const discountAmount = calculateItemDiscountAmount(item);
-      
-      const percentVal = item.itemDiscountType === 'percent' 
-        ? Number(item.itemDiscountValue) || 0 
-        : lineTotal > 0 ? (discountAmount / lineTotal) * 100 : 0;
+
+      const percentVal =
+        item.itemDiscountType === 'percent'
+          ? Number(item.itemDiscountValue) || 0
+          : lineTotal > 0
+          ? (discountAmount / lineTotal) * 100
+          : 0;
 
       return {
         ...item,
@@ -292,7 +352,11 @@ export default function Home() {
   };
 
   const handleDeleteOrder = async (orderId, maHoaDon) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa đơn hàng ${maHoaDon}? Tồn kho của các sản phẩm trong đơn sẽ được HOÀN TRẢ LẠI!`)) {
+    if (
+      confirm(
+        `Bạn có chắc chắn muốn xóa đơn hàng ${maHoaDon}? Tồn kho của các sản phẩm trong đơn sẽ được HOÀN TRẢ LẠI!`
+      )
+    ) {
       try {
         const res = await fetch(`/api/orders?id=${orderId}`, {
           method: 'DELETE',
@@ -344,7 +408,13 @@ export default function Home() {
     });
 
     setEditingId(null);
-    setFormData({ ma_san_pham: '', ten_san_pham: '', gia: '', chiet_khau: 0, variants: [{ size: '', ton_kho: '' }] });
+    setFormData({
+      ma_san_pham: '',
+      ten_san_pham: '',
+      gia: '',
+      chiet_khau: 0,
+      variants: [{ size: '', ton_kho: '' }],
+    });
     fetchProducts(searchQuery);
   };
 
@@ -355,7 +425,10 @@ export default function Home() {
       ten_san_pham: prod.ten_san_pham,
       gia: prod.gia,
       chiet_khau: prod.chiet_khau || 0,
-      variants: prod.variants && prod.variants.length > 0 ? prod.variants : [{ size: '', ton_kho: '' }],
+      variants:
+        prod.variants && prod.variants.length > 0
+          ? prod.variants
+          : [{ size: '', ton_kho: '' }],
     });
   };
 
@@ -373,29 +446,31 @@ export default function Home() {
   }
 
   // TÍNH TOÁN CÁC TIÊU ĐỀ TỔNG CHO PHẦN IN HÓA ĐƠN
-  const printSummary = orderToPrint ? (() => {
-    let tongTienHang = 0;
-    let tongGiamMon = 0;
+  const printSummary = orderToPrint
+    ? (() => {
+        let tongTienHang = 0;
+        let tongGiamMon = 0;
 
-    orderToPrint.items?.forEach((item) => {
-      const donGiaGoc = Number(item.don_gia) || 0;
-      const soLuong = Number(item.so_luong) || 0;
-      const lineGiamGia = Number(item.giam_gia_item ?? item.giam_gia ?? 0);
+        orderToPrint.items?.forEach((item) => {
+          const donGiaGoc = Number(item.don_gia) || 0;
+          const soLuong = Number(item.so_luong) || 0;
+          const lineGiamGia = Number(item.giam_gia_item ?? item.giam_gia ?? 0);
 
-      tongTienHang += donGiaGoc * soLuong;
-      tongGiamMon += lineGiamGia;
-    });
+          tongTienHang += donGiaGoc * soLuong;
+          tongGiamMon += lineGiamGia;
+        });
 
-    const giamGiaThem = Number(orderToPrint.giam_gia) || 0;
-    const tongCong = Number(orderToPrint.tong_tien) || 0;
+        const giamGiaThem = Number(orderToPrint.giam_gia) || 0;
+        const tongCong = Number(orderToPrint.tong_tien) || 0;
 
-    return {
-      tongTienHang,
-      tongGiamMon,
-      giamGiaThem,
-      tongCong,
-    };
-  })() : null;
+        return {
+          tongTienHang,
+          tongGiamMon,
+          giamGiaThem,
+          tongCong,
+        };
+      })()
+    : null;
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-zinc-50 text-zinc-900 font-sans">
@@ -560,34 +635,34 @@ export default function Home() {
                 <label className="font-medium text-sm block text-zinc-700">Danh sách Biến thể (Size & Tồn kho):</label>
                 {formData.variants.map((v, index) => (
                   <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 items-center">
-  <input
-    type="text"
-    placeholder="Size"
-    value={v.size}
-    onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-    className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-    required
-  />
-  <div className="flex gap-2 items-center w-full">
-    <input
-      type="number"
-      placeholder="Tồn kho"
-      value={v.ton_kho}
-      onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
-      className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
-      required
-    />
-    {formData.variants.length > 1 && (
-      <button
-        type="button"
-        onClick={() => removeVariantRow(index)}
-        className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2.5 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
-      >
-        Xóa
-      </button>
-    )}
-  </div>
-</div>
+                    <input
+                      type="text"
+                      placeholder="Size"
+                      value={v.size}
+                      onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                      className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                      required
+                    />
+                    <div className="flex gap-2 items-center w-full">
+                      <input
+                        type="number"
+                        placeholder="Tồn kho"
+                        value={v.ton_kho}
+                        onChange={(e) => handleVariantChange(index, 'ton_kho', e.target.value)}
+                        className="w-full border border-zinc-300 p-2.5 rounded-lg bg-zinc-50 text-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:bg-white transition-all"
+                        required
+                      />
+                      {formData.variants.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeVariantRow(index)}
+                          className="bg-zinc-100 text-red-600 border border-zinc-200 px-3 py-2.5 rounded-lg text-xs font-semibold hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
+                        >
+                          Xóa
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 ))}
                 <button
                   type="button"
@@ -756,43 +831,76 @@ export default function Home() {
                 </table>
               </div>
 
-              {/* PHÂN TRANG */}
+              {/* PHÂN TRANG (ĐÃ TÍCH HỢP DẤU ... VÀ Ô NHẬP ĐẾN TRANG) */}
               {products.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-zinc-200 text-xs text-zinc-600 bg-zinc-50/50 gap-3">
+                <div className="flex flex-col lg:flex-row items-center justify-between p-4 border-t border-zinc-200 text-xs text-zinc-600 bg-zinc-50/50 gap-4">
                   <div>
                     Hiển thị <b>{startIndex + 1}</b> - <b>{Math.min(startIndex + ITEMS_PER_PAGE, products.length)}</b> trên <b>{products.length}</b> sản phẩm
                   </div>
 
-                  <div className="flex items-center gap-1 flex-wrap justify-center">
-                    <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
-                    >
-                      Trước
-                    </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <div className="flex flex-wrap items-center justify-center lg:justify-end gap-3 w-full lg:w-auto">
+                    {/* Dải nút chuyển trang */}
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
                       <button
-                        key={page}
-                        onClick={() => goToPage(page)}
-                        className={`px-3 py-1.5 rounded-md border font-medium transition-all ${
-                          currentPage === page
-                            ? 'bg-zinc-900 text-white border-zinc-900 font-bold'
-                            : 'bg-white border-zinc-300 hover:bg-zinc-100 text-zinc-700'
-                        }`}
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
                       >
-                        {page}
+                        Trước
                       </button>
-                    ))}
 
-                    <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
-                    >
-                      Sau
-                    </button>
+                      {paginationRange.map((page, idx) => {
+                        if (page === '...') {
+                          return (
+                            <span key={`dots-${idx}`} className="px-2 py-1.5 text-zinc-400 select-none font-bold">
+                              ...
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => goToPage(page)}
+                            className={`px-3 py-1.5 rounded-md border font-medium transition-all ${
+                              currentPage === page
+                                ? 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                                : 'bg-white border-zinc-300 hover:bg-zinc-100 text-zinc-700'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-3 py-1.5 rounded-md border border-zinc-300 bg-white hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium transition-all"
+                      >
+                        Sau
+                      </button>
+                    </div>
+
+                    {/* Form nhập số trang trực tiếp */}
+                    <form onSubmit={handleJumpPage} className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-zinc-500 font-medium">Đến trang:</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        value={jumpPageInput}
+                        onChange={(e) => setJumpPageInput(e.target.value)}
+                        placeholder={String(currentPage)}
+                        className="w-14 border border-zinc-300 p-1.5 text-center rounded-md bg-white text-zinc-900 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                      />
+                      <button
+                        type="submit"
+                        className="px-2.5 py-1.5 bg-zinc-200 text-zinc-800 rounded-md font-semibold hover:bg-zinc-300 transition-all"
+                      >
+                        Đi
+                      </button>
+                    </form>
                   </div>
                 </div>
               )}
@@ -919,7 +1027,7 @@ export default function Home() {
                               <td className="p-3 font-semibold text-zinc-800 whitespace-nowrap">Size {item.size}</td>
                               <td className="p-3 whitespace-nowrap">{Number(item.don_gia).toLocaleString('vi-VN')} đ</td>
                               <td className="p-3 font-bold whitespace-nowrap">{item.so_luong}</td>
-                              
+
                               <td className="p-3 whitespace-nowrap">
                                 <div className="flex items-center gap-1.5">
                                   <select
@@ -1162,13 +1270,16 @@ export default function Home() {
                 const donGiaGoc = Number(item.don_gia);
                 const soLuong = Number(item.so_luong);
                 const totalGoc = donGiaGoc * soLuong;
-                
-                const giamGiaTien = Number(item.giam_gia_item ?? item.giam_gia ?? 0);
-                const giamGiaPercent = item.giam_gia_percent !== undefined 
-                  ? Number(item.giam_gia_percent)
-                  : totalGoc > 0 ? (giamGiaTien / totalGoc) * 100 : 0;
 
-                const lineFinal = Number(item.thanh_tien ?? (totalGoc - giamGiaTien));
+                const giamGiaTien = Number(item.giam_gia_item ?? item.giam_gia ?? 0);
+                const giamGiaPercent =
+                  item.giam_gia_percent !== undefined
+                    ? Number(item.giam_gia_percent)
+                    : totalGoc > 0
+                    ? (giamGiaTien / totalGoc) * 100
+                    : 0;
+
+                const lineFinal = Number(item.thanh_tien ?? totalGoc - giamGiaTien);
 
                 return (
                   <tr key={idx} style={{ borderBottom: '1px dashed #ccc' }}>
@@ -1195,7 +1306,7 @@ export default function Home() {
 
           <div style={{ borderTop: '1px solid #000', margin: '6px 0' }}></div>
 
-          {/* CHÂN HÓA ĐƠN ĐÃ ĐƯỢC CHỈNH SỬA */}
+          {/* CHÂN HÓA ĐƠN */}
           <div style={{ fontSize: '10px', lineHeight: '1.5' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', margin: '2px 0' }}>
               <span>Tổng tiền hàng:</span>
